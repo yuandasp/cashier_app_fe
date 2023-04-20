@@ -2,20 +2,11 @@ import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 
 function Register() {
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [resetForm, setResetForm] = useState({
-    store_name: "",
-    username: "",
-    email: "",
-    phone_number: "",
-    password: "",
-  });
 
   const registerSchema = Yup.object().shape({
     store_name: Yup.string().required("This field is required"),
@@ -31,7 +22,7 @@ function Register() {
       .min(8, "Password too short"),
   });
 
-  const registerUser = async (value) => {
+  const registerUser = async (value, actions) => {
     try {
       setIsLoading(true);
       let response = await axios.post(
@@ -47,7 +38,13 @@ function Register() {
       });
 
       setIsLoading(false);
-      setResetForm();
+      actions.resetForm({
+        store_name: "",
+        username: "",
+        email: "",
+        phone_number: "",
+        password: "",
+      });
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -69,8 +66,9 @@ function Register() {
           password: "",
         }}
         validationSchema={registerSchema}
-        onSubmit={(value) => {
-          registerUser(value);
+        onSubmit={(value, actions) => {
+          registerUser(value, actions);
+          console.log(actions);
         }}
       >
         {(props) => {
@@ -118,6 +116,7 @@ function Register() {
                           required
                           className="pl-4 relative block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-900 sm:text-sm sm:leading-6"
                           placeholder="Username"
+                          autoComplete="username"
                         />
                         <ErrorMessage
                           component="div"
@@ -177,6 +176,7 @@ function Register() {
                           required
                           className="pl-4 relative block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-900 sm:text-sm sm:leading-6"
                           placeholder="Password"
+                          autoComplete="new-password"
                         />
                         <ErrorMessage
                           component="div"
@@ -195,7 +195,7 @@ function Register() {
                           <svg
                             aria-hidden="true"
                             role="status"
-                            class="inline w-4 h-4 mr-3 text-white animate-spin"
+                            className="inline w-4 h-4 mr-3 text-white animate-spin"
                             viewBox="0 0 100 101"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
