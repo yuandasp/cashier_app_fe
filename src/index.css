@@ -21,3 +21,13 @@ code {
   -webkit-box-shadow: 16px 27px 31px -7px rgba(0, 0, 0, 0.75);
   -moz-box-shadow: 16px 27px 31px -7px rgba(0, 0, 0, 0.75);
 }
+
+.content {
+  height: calc(100vh - 64px);
+}
+
+.box-shadow-product {
+  box-shadow: 10px 10px 11px 4px rgba(158, 158, 158, 0.8);
+  -webkit-box-shadow: 10px 10px 11px 4px rgba(158, 158, 158, 0.8);
+  -moz-box-shadow: 10px 10px 11px 4px rgba(158, 158, 158, 0.8);
+}
