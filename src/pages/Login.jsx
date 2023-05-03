@@ -2,31 +2,31 @@ import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
+import { setUser } from "../feature/user/userSlice";
+import { useDispatch } from "react-redux";
+import { authToken } from "../helpers/constant";
 
-function Register() {
+function Login() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
 
-  const registerSchema = Yup.object().shape({
-    store_name: Yup.string().required("This field is required"),
-    username: Yup.string().required("This field is required"),
+  const loginSchema = Yup.object().shape({
     email: Yup.string()
       .email("Wrong email format")
-      .required("This field is required"),
-    phone_number: Yup.string()
-      .min(10, "Must be more than 10 characters")
       .required("This field is required"),
     password: Yup.string()
       .required("This field is required")
       .min(8, "Password too short"),
   });
 
-  const registerUser = async (value, actions) => {
+  const loginUser = async (value, actions) => {
     try {
       setIsLoading(true);
       let response = await axios.post(
-        "http://localhost:8001/auth/register",
+        "http://localhost:8001/auth/login",
         value
       );
 
@@ -36,22 +36,20 @@ function Register() {
         text: response.data.message,
         footer: "",
       });
-
       setIsLoading(false);
-      actions.resetForm({
-        store_name: "",
-        username: "",
-        email: "",
-        phone_number: "",
-        password: "",
-      });
+
+      if (response.data?.token) {
+        localStorage.setItem(authToken, response.data?.token);
+        dispatch(setUser(response.data.data));
+        navigate("/");
+      }
     } catch (error) {
+      setIsLoading(false);
       Swal.fire({
         icon: "error",
         title: "Oops...",
         text: error.response.data?.message || "Something went wrong!!",
       });
-      setIsLoading(false);
     }
   };
 
@@ -59,25 +57,22 @@ function Register() {
     <div>
       <Formik
         initialValues={{
-          store_name: "",
-          username: "",
           email: "",
-          phone_number: "",
           password: "",
         }}
-        validationSchema={registerSchema}
+        validationSchema={loginSchema}
         onSubmit={(value, actions) => {
-          registerUser(value, actions);
+          loginUser(value);
         }}
       >
         {(props) => {
           return (
             <>
               <div className="flex h-screen items-start justify-center px-4 py-8 sm:px-6 lg:px-8 bg-blue-900">
-                <div className="w-full h-2/3 max-w-lg py-11 px-14 bg-slate-50 rounded-md box-shadow-register">
+                <div className="w-full h-3/6 max-w-lg py-11 px-14 bg-slate-50 rounded-md box-shadow-register">
                   <div className="flex gap-2 items-end justify-center">
                     <p className="text-center text-2xl text-blue-900">
-                      Sign up to
+                      Login to
                     </p>
                     <p className="text-center text-4xl font-bold text-blue-900 tracking-tighter">
                       Cashier App
@@ -86,43 +81,6 @@ function Register() {
                   <Form className="mt-8 space-y-6" action="#" method="POST">
                     <input type="hidden" name="remember" defaultValue="true" />
                     <div className="rounded-md shadow-sm">
-                      <div className="my-4">
-                        <label htmlFor="store_name" className="sr-only">
-                          Store Name
-                        </label>
-                        <Field
-                          id="store_name"
-                          name="store_name"
-                          type="text"
-                          required
-                          className="pl-4 relative block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-900 sm:text-sm sm:leading-6"
-                          placeholder="Store name"
-                        />
-                        <ErrorMessage
-                          component="div"
-                          name="store_name"
-                          style={{ color: "red", fontSize: "12px" }}
-                        />
-                      </div>
-                      <div className="my-4">
-                        <label htmlFor="username" className="sr-only">
-                          Username
-                        </label>
-                        <Field
-                          id="username"
-                          name="username"
-                          type="text"
-                          required
-                          className="pl-4 relative block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-900 sm:text-sm sm:leading-6"
-                          placeholder="Username"
-                          autoComplete="username"
-                        />
-                        <ErrorMessage
-                          component="div"
-                          name="username"
-                          style={{ color: "red", fontSize: "12px" }}
-                        />
-                      </div>
                       <div className="my-4">
                         <label
                           htmlFor="email-address"
@@ -143,24 +101,6 @@ function Register() {
                         <ErrorMessage
                           component="div"
                           name="email"
-                          style={{ color: "red", fontSize: "12px" }}
-                        />
-                      </div>
-                      <div className="my-4">
-                        <label htmlFor="phone_number" className="sr-only">
-                          Phone number
-                        </label>
-                        <Field
-                          id="phone_number"
-                          name="phone_number"
-                          type="text"
-                          required
-                          className="pl-4 relative block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-900 sm:text-sm sm:leading-6"
-                          placeholder="Phone number"
-                        />
-                        <ErrorMessage
-                          component="div"
-                          name="phone_number"
                           style={{ color: "red", fontSize: "12px" }}
                         />
                       </div>
@@ -212,11 +152,11 @@ function Register() {
                         </button>
                         <div className="flex gap-2 items-end justify-end py-1">
                           <p className="text-blue-900 text-end text-xs my-2 ">
-                            Already have an account?
+                            Don't have an account?
                           </p>
 
                           <p className="text-blue-900 text-end font-bold text-sm my-2 hover:text-blue-600">
-                            Log in
+                            Sign up
                           </p>
                         </div>
                       </div>
@@ -226,16 +166,16 @@ function Register() {
                           type="submit"
                           className="group relative flex w-full justify-center rounded-md bg-blue-900 px-3 py-2 text-lg font-semibold text-white hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                         >
-                          Sign up
+                          Log in
                         </button>
 
                         <div className="flex gap-2 items-end justify-end py-1">
                           <p className="text-blue-900 text-end text-xs my-2 ">
-                            Already have an account?
+                            Don't have an account?
                           </p>
-                          <Link to={"/login"}>
+                          <Link to={"/register"}>
                             <p className="text-blue-900 text-end font-bold text-sm my-2 hover:text-blue-600">
-                              Log in
+                              Sign up
                             </p>
                           </Link>
                         </div>
@@ -252,4 +192,4 @@ function Register() {
   );
 }
 
-export default Register;
+export default Login;
